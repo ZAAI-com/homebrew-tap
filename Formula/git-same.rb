@@ -1,42 +1,26 @@
+# Homebrew Formula deprecation shim for the old `git-same` formula name.
+# Rendered by S3-Publish-Homebrew.yml into Formula/git-same.rb on the tap.
+#
+# Existing users running `brew install zaai-com/tap/git-same` see a deprecation
+# warning and transparently get `git-same-cli` installed via the dependency.
+# Scheduled for removal at git-same 3.2.
 class GitSame < Formula
-  desc "Discover and mirror GitHub org/repo structures locally"
+  desc "Renamed: use 'git-same' cask (macOS) or 'git-same-cli' formula (headless)"
   homepage "https://github.com/zaai-com/git-same"
-  version "2.0.0"
+  url "https://github.com/zaai-com/git-same/archive/refs/tags/3.0.1.tar.gz"
+  sha256 "028030e4cdda1fe3db4f1708348db865c7a2a6194c48e83d5ed117783e05dd6c"
   license "MIT"
 
-  if OS.mac?
-    if Hardware::CPU.arm?
-      url "https://github.com/zaai-com/git-same/releases/download/2.0.0/git-same-macos-aarch64"
-      sha256 "e6277f24f7e346143b56cac91fe706161a8c17f5f7901ae3eea65a4bfacca6ae"
-    else
-      url "https://github.com/zaai-com/git-same/releases/download/2.0.0/git-same-macos-x86_64"
-      sha256 "bd71182dd9e90fc6ff78b159c7046c6d0c82d921570c5c0016933e00597bdeee"
-    end
-  elsif OS.linux?
-    if Hardware::CPU.arm?
-      url "https://github.com/zaai-com/git-same/releases/download/2.0.0/git-same-linux-aarch64"
-      sha256 "ff78c3b98bdb96a692697fada4e96c85cd01f285452e3d7abdd72af18ede4f7a"
-    else
-      url "https://github.com/zaai-com/git-same/releases/download/2.0.0/git-same-linux-x86_64"
-      sha256 "82800abf702c0c26e876ad24db593307d48cf6179de55d27f8de88f694efc494"
-    end
-  end
+  deprecate! date:    "2026-05-07",
+             because: "renamed: install 'git-same' cask (GUI users) or 'git-same-cli' formula (headless)"
+
+  depends_on "zaai-com/tap/git-same-cli"
 
   def install
-    if OS.mac?
-      bin.install "git-same-macos-#{Hardware::CPU.arm? ? "aarch64" : "x86_64"}" => "git-same"
-    elsif OS.linux?
-      bin.install "git-same-linux-#{Hardware::CPU.arm? ? "aarch64" : "x86_64"}" => "git-same"
-    end
-    bin.install_symlink "git-same" => "gitsame"
-    bin.install_symlink "git-same" => "gitsa"
-    bin.install_symlink "git-same" => "gisa"
+    # No-op: the dependency installs the actual binary.
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/git-same --version")
-    assert_match version.to_s, shell_output("#{bin}/gitsame --version")
-    assert_match version.to_s, shell_output("#{bin}/gitsa --version")
-    assert_match version.to_s, shell_output("#{bin}/gisa --version")
+    assert_path_exists Formula["zaai-com/tap/git-same-cli"].opt_bin/"git-same"
   end
 end
