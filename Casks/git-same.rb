@@ -7,9 +7,9 @@
 cask "git-same" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "3.0.1"
-  sha256 arm:   "3976afe3d8ad0d117253be21d2b775f84c9746045c407dda25621c43c9397274",
-         intel: "cf24f3a293100bce6bdfebe154fc6ba6e831db26011ea1c5e4ba5b5a470a509e"
+  version "3.0.2"
+  sha256 arm:   "90ed2958704c4381913e09a83f2a4e2953fdd804fbd849ce561e558b5d075ef6",
+         intel: "3aeee01f70c0107b6fe8940d95579858d48d223469315b5c8bdbc105593cbd6a"
 
   url "https://github.com/zaai-com/git-same/releases/download/#{version}/git-same-#{version}-#{arch}-apple-darwin.tar.gz"
   name "Git-Same"
