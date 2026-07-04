@@ -5,8 +5,8 @@
 # DMG, so there is one artifact and one SHA256 (no arch split). The zap stanza
 # removes the app's data directory (see the c5h_data_locations note).
 cask "c5h" do
-  version "1.2.0"
-  sha256 "0a03cfa0905843eae778385a143f8e0248ade317a3a7ca4d3eaa7b6d8fafad69"
+  version "1.3.1"
+  sha256 "07042a195487e7522a524c0167cbbf0edb4d16e6a9fa3573e4ebec605c3a0894"
 
   url "https://github.com/ZAAI-com/C5h/releases/download/#{version}/C5h-#{version}.dmg"
   name "C5h"
