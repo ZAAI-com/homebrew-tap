@@ -7,9 +7,9 @@
 cask "git-same" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "3.1.0"
-  sha256 arm:   "2fc65936de3e4f9b8022bd02de65dd92cf85e95b14efedd6e6bcf6b3ca9f50cb",
-         intel: "dc1cb0a0e90fe57d6ab7d91dd7bac28faedd5679334b845f1a6ec7fd13c12bc6"
+  version "3.1.1"
+  sha256 arm:   "a34dc4b5f66f396751745850a2aaa3ed515827f39f01a699458981e51c4347d5",
+         intel: "d87623d2cea1d6fc35d306c02c3608c7bf20a660842c06b5904c48e09f6279f6"
 
   url "https://github.com/zaai-com/git-same/releases/download/#{version}/git-same-#{version}-#{arch}.dmg"
   name "Git-Same"
@@ -29,30 +29,39 @@ cask "git-same" do
   binary "#{appdir}/Git-Same.app/Contents/Helpers/git-same", target: "gitsa"
   binary "#{appdir}/Git-Same.app/Contents/Helpers/git-same", target: "gisa"
 
-  postflight do
-    legacy_plist_dst = "#{Dir.home}/Library/LaunchAgents/com.zaai.git-same.daemon.plist"
-    if File.exist?(legacy_plist_dst)
-      system_command "/bin/launchctl", args: ["unload", legacy_plist_dst], sudo: false, must_succeed: false
-      File.delete(legacy_plist_dst)
+  # Steps run in Homebrew's sandbox with a throwaway HOME, so file paths use
+  # `base: :home` (the real home) instead of "~". `run` args have no home
+  # token, so launchctl paths are spelled /Users/{{user}}. All launchctl and
+  # pluginkit calls are best-effort: the agent also loads at next login.
+  postflight_steps do
+    if_path_exists "Library/LaunchAgents/com.zaai.git-same.daemon.plist", base: :home do
+      run "/bin/launchctl",
+          args:         ["unload", "/Users/{{user}}/Library/LaunchAgents/com.zaai.git-same.daemon.plist"],
+          must_succeed: false
+      remove "Library/LaunchAgents/com.zaai.git-same.daemon.plist", base: :home
     end
 
-    plist_src = "#{appdir}/Git-Same.app/Contents/Resources/com.zaai.git-same.monitor.plist"
-    plist_dst = "#{Dir.home}/Library/LaunchAgents/com.zaai.git-same.monitor.plist"
-    monitor_binary = "#{appdir}/Git-Same.app/Contents/Helpers/git-same"
-
-    FileUtils.mkdir_p(File.dirname(plist_dst))
-    rendered = File.read(plist_src).gsub("__GIT_SAME_MONITOR_BINARY__", monitor_binary)
-    File.write(plist_dst, rendered)
-    system_command "/bin/launchctl", args: ["unload", plist_dst], sudo: false, must_succeed: false
-    system_command "/bin/launchctl", args: ["load", plist_dst], sudo: false, must_succeed: false
+    copy "Git-Same.app/Contents/Resources/com.zaai.git-same.monitor.plist",
+         "Library/LaunchAgents/com.zaai.git-same.monitor.plist",
+         source_base: :appdir, target_base: :home
+    inreplace "Library/LaunchAgents/com.zaai.git-same.monitor.plist",
+              "__GIT_SAME_MONITOR_BINARY__",
+              "{{appdir}}/Git-Same.app/Contents/Helpers/git-same",
+              base: :home
+    run "/bin/launchctl",
+        args:         ["unload", "/Users/{{user}}/Library/LaunchAgents/com.zaai.git-same.monitor.plist"],
+        must_succeed: false
+    run "/bin/launchctl",
+        args:         ["load", "/Users/{{user}}/Library/LaunchAgents/com.zaai.git-same.monitor.plist"],
+        must_succeed: false
 
     # Clear stale FinderSync registration from pre-rename builds (id was
     # `com.zaai.git-same.GitSameBadge.FinderSync`; renamed to
     # `com.zaai.git-same.badges` in 3.1.0). Best-effort: ignored if the id
     # is not present in pluginkit's cache.
-    system_command "/usr/bin/pluginkit",
-                   args: ["-e", "ignore", "-i", "com.zaai.git-same.GitSameBadge.FinderSync"],
-                   sudo: false, must_succeed: false
+    run "/usr/bin/pluginkit",
+        args:         ["-e", "ignore", "-i", "com.zaai.git-same.GitSameBadge.FinderSync"],
+        must_succeed: false
   end
 
   # Both labels listed for one release: `com.zaai.git-same.daemon` is the
