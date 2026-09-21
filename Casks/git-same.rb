@@ -7,9 +7,9 @@
 cask "git-same" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "3.1.1"
-  sha256 arm:   "a34dc4b5f66f396751745850a2aaa3ed515827f39f01a699458981e51c4347d5",
-         intel: "d87623d2cea1d6fc35d306c02c3608c7bf20a660842c06b5904c48e09f6279f6"
+  version "3.1.2"
+  sha256 arm:   "95a4c8bbe33f248d144245809bcc64fc3abdb30ade32ec320f6e3f3b268bc81f",
+         intel: "6fecbbc336b13ed44da36bff3d2e781b1f4f9101c74d400823e82c6af06a940d"
 
   url "https://github.com/zaai-com/git-same/releases/download/#{version}/git-same-#{version}-#{arch}.dmg"
   name "Git-Same"
@@ -24,56 +24,39 @@ cask "git-same" do
   depends_on macos: :ventura
 
   app "Git-Same.app"
+  # Installs the background monitor as a separate helper in the user's
+  # Library and starts it when monitoring is enabled. The helper does not
+  # depend on the app bundle, so closing or moving Git-Same.app never stops
+  # monitoring. `installer script:` runs outside the cask sandbox (it has to
+  # reach launchd) and EXECUTES BEFORE `app` moves the bundle, even though
+  # `brew style` requires it to be written after `app`. That is why the
+  # executable is the staged copy and the final app path is passed in.
+  # The installer retains a copy of itself next to the staged bundle; the
+  # uninstall stanza runs that copy, so removal still works after the app or
+  # the helper was deleted. Requires packaging protocol 1
+  # (`git-same monitor --agent-protocol-version`), which S3 verifies.
+  installer script: {
+    executable: "Git-Same.app/Contents/Helpers/git-same",
+    args:       [
+      "monitor", "--install-agent",
+      "--app-path", "#{appdir}/Git-Same.app",
+      "--installer-copy", "#{staged_path}/git-same-service-tool"
+    ],
+  }
   binary "#{appdir}/Git-Same.app/Contents/Helpers/git-same"
   binary "#{appdir}/Git-Same.app/Contents/Helpers/git-same", target: "gitsame"
   binary "#{appdir}/Git-Same.app/Contents/Helpers/git-same", target: "gitsa"
   binary "#{appdir}/Git-Same.app/Contents/Helpers/git-same", target: "gisa"
 
-  # Steps run in Homebrew's sandbox with a throwaway HOME, so file paths use
-  # `base: :home` (the real home) instead of "~". `run` args have no home
-  # token, so launchctl paths are spelled /Users/{{user}}. All launchctl and
-  # pluginkit calls are best-effort: the agent also loads at next login.
-  postflight_steps do
-    if_path_exists "Library/LaunchAgents/com.zaai.git-same.daemon.plist", base: :home do
-      run "/bin/launchctl",
-          args:         ["unload", "/Users/{{user}}/Library/LaunchAgents/com.zaai.git-same.daemon.plist"],
-          must_succeed: false
-      remove "Library/LaunchAgents/com.zaai.git-same.daemon.plist", base: :home
-    end
-
-    copy "Git-Same.app/Contents/Resources/com.zaai.git-same.monitor.plist",
-         "Library/LaunchAgents/com.zaai.git-same.monitor.plist",
-         source_base: :appdir, target_base: :home
-    inreplace "Library/LaunchAgents/com.zaai.git-same.monitor.plist",
-              "__GIT_SAME_MONITOR_BINARY__",
-              "{{appdir}}/Git-Same.app/Contents/Helpers/git-same",
-              base: :home
-    run "/bin/launchctl",
-        args:         ["unload", "/Users/{{user}}/Library/LaunchAgents/com.zaai.git-same.monitor.plist"],
-        must_succeed: false
-    run "/bin/launchctl",
-        args:         ["load", "/Users/{{user}}/Library/LaunchAgents/com.zaai.git-same.monitor.plist"],
-        must_succeed: false
-
-    # Clear stale FinderSync registration from pre-rename builds (id was
-    # `com.zaai.git-same.GitSameBadge.FinderSync`; renamed to
-    # `com.zaai.git-same.badges` in 3.1.0). Best-effort: ignored if the id
-    # is not present in pluginkit's cache.
-    run "/usr/bin/pluginkit",
-        args:         ["-e", "ignore", "-i", "com.zaai.git-same.GitSameBadge.FinderSync"],
-        must_succeed: false
-  end
-
-  # Both labels listed for one release: `com.zaai.git-same.daemon` is the
-  # legacy label (3.0.x); `com.zaai.git-same.monitor` is the renamed agent
-  # introduced after the daemon→monitor rename. Cask upgrades from 3.0.x
-  # need the legacy label so launchctl unloads the old plist before the new
-  # one is installed.
-  uninstall launchctl: ["com.zaai.git-same.monitor", "com.zaai.git-same.daemon"],
-            delete:    [
-              "~/Library/LaunchAgents/com.zaai.git-same.daemon.plist",
-              "~/Library/LaunchAgents/com.zaai.git-same.monitor.plist",
-            ]
+  # Owner-aware removal: only a monitor installed by this cask is removed, and
+  # the user's start/stop preference is preserved across upgrades. No
+  # `launchctl:` or `delete:` keys on purpose: both act before the script,
+  # probe with sudo, and would bypass the transactional removal.
+  uninstall quit:   "com.zaai.git-same",
+            script: {
+              executable: "#{staged_path}/git-same-service-tool",
+              args:       ["monitor", "--remove-agent", "--app-path", "#{appdir}/Git-Same.app"],
+            }
 
   zap trash: [
     "~/.config/git-same",
@@ -83,5 +66,6 @@ cask "git-same" do
     "~/Library/Group Containers/group.57KL6Y7V32.com.zaai.git-same",
     "~/Library/LaunchAgents/com.zaai.git-same.daemon.plist",
     "~/Library/LaunchAgents/com.zaai.git-same.monitor.plist",
+    "~/Library/Logs/git-same",
   ]
 end
