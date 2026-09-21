@@ -5,8 +5,8 @@
 # DMG, so there is one artifact and one SHA256 (no arch split). The zap stanza
 # removes the app's data directory (see the c5h_data_locations note).
 cask "c5h" do
-  version "1.3.1"
-  sha256 "07042a195487e7522a524c0167cbbf0edb4d16e6a9fa3573e4ebec605c3a0894"
+  version "2.0.0"
+  sha256 "31f6c96d1a24da882e94649fdcf85b777eeb11fbe80d94781db3e55c3054d68f"
 
   url "https://github.com/ZAAI-com/C5h/releases/download/#{version}/C5h-#{version}.dmg"
   name "C5h"
@@ -18,6 +18,7 @@ cask "c5h" do
     strategy :github_latest
   end
 
+  auto_updates true
   depends_on macos: :tahoe
 
   app "C5h.app"
