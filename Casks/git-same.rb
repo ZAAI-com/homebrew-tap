@@ -7,9 +7,9 @@
 cask "git-same" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "3.1.2"
-  sha256 arm:   "95a4c8bbe33f248d144245809bcc64fc3abdb30ade32ec320f6e3f3b268bc81f",
-         intel: "6fecbbc336b13ed44da36bff3d2e781b1f4f9101c74d400823e82c6af06a940d"
+  version "3.2.0"
+  sha256 arm:   "e68e2c376364e548f453d1beb1b2cd9adf8d38cf77751e1cfe549b62cd77546d",
+         intel: "3aa6fa3c0628ec26b77332ed0470115dab44a72c7628c343d8754e51bcde1e09"
 
   url "https://github.com/zaai-com/git-same/releases/download/#{version}/git-same-#{version}-#{arch}.dmg"
   name "Git-Same"
@@ -24,10 +24,14 @@ cask "git-same" do
   depends_on macos: :ventura
 
   app "Git-Same.app"
-  # Installs the background monitor as a separate helper in the user's
-  # Library and starts it when monitoring is enabled. The helper does not
-  # depend on the app bundle, so closing or moving Git-Same.app never stops
-  # monitoring. `installer script:` runs outside the cask sandbox (it has to
+  # Installs the background monitor LaunchAgent and starts it when monitoring
+  # is enabled. The agent execs the app bundle's own main executable in
+  # headless `monitor` mode, not the CLI helper: macOS TCC attributes a
+  # launchd-spawned process to its bundle only when the executable is the
+  # bundle's CFBundleExecutable, so this is what lets one Full Disk Access
+  # grant for "Git-Same" cover the monitor. Closing the app does not stop
+  # monitoring; moving or deleting the bundle does, which the app reports.
+  # `installer script:` runs outside the cask sandbox (it has to
   # reach launchd) and EXECUTES BEFORE `app` moves the bundle, even though
   # `brew style` requires it to be written after `app`. That is why the
   # executable is the staged copy and the final app path is passed in.
