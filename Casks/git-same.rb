@@ -7,9 +7,9 @@
 cask "git-same" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "3.2.0"
-  sha256 arm:   "e68e2c376364e548f453d1beb1b2cd9adf8d38cf77751e1cfe549b62cd77546d",
-         intel: "3aa6fa3c0628ec26b77332ed0470115dab44a72c7628c343d8754e51bcde1e09"
+  version "3.2.1"
+  sha256 arm:   "2bc194daf91ea0d7913518587550fa2a514e338120137b88966ba16551d61370",
+         intel: "903ee485acadc181404a191e83297d84fafc89a2eb6c0f1678ca3bb69300d4a2"
 
   url "https://github.com/zaai-com/git-same/releases/download/#{version}/git-same-#{version}-#{arch}.dmg"
   name "Git-Same"
@@ -24,8 +24,13 @@ cask "git-same" do
   depends_on macos: :ventura
 
   app "Git-Same.app"
-  # Installs the background monitor LaunchAgent and starts it when monitoring
-  # is enabled. The agent execs the app bundle's own main executable in
+  # Installs the background monitor LaunchAgent but does not start it: the
+  # program it names is not on disk yet (see below), and launchd parks a job
+  # whose program is missing at load (EX_CONFIG) and never retries it. Unless
+  # the user stopped monitoring (a Stop survives upgrades), the monitor starts
+  # when Homebrew reopens the app after an upgrade, when the user next opens
+  # Git-Same, or at the next login. The agent execs the app
+  # bundle's own main executable in
   # headless `monitor` mode, not the CLI helper: macOS TCC attributes a
   # launchd-spawned process to its bundle only when the executable is the
   # bundle's CFBundleExecutable, so this is what lets one Full Disk Access

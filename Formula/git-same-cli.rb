@@ -14,19 +14,19 @@ class GitSameCli < Formula
 
   if OS.mac?
     if Hardware::CPU.arm?
-      url "https://github.com/zaai-com/git-same/releases/download/3.2.0/git-same-3.2.0-aarch64-apple-darwin.tar.gz"
-      sha256 "6a7df032411de3c6256a05dc14ebdb9984254b3cf43a6cbf0a69b9dd051fa361"
+      url "https://github.com/zaai-com/git-same/releases/download/3.2.1/git-same-3.2.1-aarch64-apple-darwin.tar.gz"
+      sha256 "f4047b122a7a2bd4b238864fdd0af44a4eced8efa1cd118d1a0f59c812ddca83"
     else
-      url "https://github.com/zaai-com/git-same/releases/download/3.2.0/git-same-3.2.0-x86_64-apple-darwin.tar.gz"
-      sha256 "bc47db055307453c6c1165194c014d2dd8207545fd3abe534ad8447ae68b759e"
+      url "https://github.com/zaai-com/git-same/releases/download/3.2.1/git-same-3.2.1-x86_64-apple-darwin.tar.gz"
+      sha256 "a5d796077eea28789ff332c368111ca329ba1523089401fae7600e7e9349f26d"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
-      url "https://github.com/zaai-com/git-same/releases/download/3.2.0/git-same-3.2.0-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "4b131aca8b7139568a75ab3c7383c23a9f60dc40e845f3edd8c845b07f95c802"
+      url "https://github.com/zaai-com/git-same/releases/download/3.2.1/git-same-3.2.1-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "b67ea6cdaa85eff1e1557955c47a00d87fccaee248a06cf18950db727bbf3d94"
     else
-      url "https://github.com/zaai-com/git-same/releases/download/3.2.0/git-same-3.2.0-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "0bdd99c52b2bb5fc484ebce98b539e929a4fab33af7590f724d3f6771d9fca1c"
+      url "https://github.com/zaai-com/git-same/releases/download/3.2.1/git-same-3.2.1-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "2daaf287d1f2c41d8a71fd8f1d85ed844ff44fdcb077eee8adba76c929a54646"
     end
   end
 
